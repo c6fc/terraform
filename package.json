@@ -1,0 +1,23 @@
+{
+  "name": "@c6fc/terraform",
+  "version": "0.15.4",
+  "description": "Download/Use Terraform via Node",
+  "main": "src/index.js",
+  "bin": {
+    "terraform": "bin/index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Brad Woodward (brad@bradwoodward.io)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/c6fc/terraform/issues"
+  },
+  "homepage": "https://github.com/c6fc/terraform#readme",
+  "dependencies": {
+    "axios": "^1.1.3",
+    "find-cache-dir": "^3.3.2",
+    "unzip-stream": "^0.3.1"
+  }
+}
