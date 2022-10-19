@@ -15,8 +15,6 @@ const version = myself?.config?.tf_version || "1.2.5";
 const cacheDir = findCacheDir({ name: myself.name, cwd: process.env.INIT_CWD });
 const executablePath = path.join(cacheDir, `terraform-${version}`);
 
-module.exports = { cacheDir, version, executablePath };
-
 const archMap = {
 	arm: "arm",
 	arm64: "arm64",
@@ -28,7 +26,7 @@ const platMap = {
 	linux: "linux"
 };
 
-(async () => {	
+const doInstall = async function() {	
 	const arch = archMap?.[process.arch];
 	const plat = platMap?.[process.platform];
 
@@ -43,6 +41,8 @@ const platMap = {
 	}
 
 	if (!fs.existsSync(executablePath)) {
+
+		console.log(`[*] Collecting Terraform ${version}`);
 
 		fs.mkdirSync(cacheDir, { recursive: true });
 
@@ -59,12 +59,19 @@ const platMap = {
 			stream.Transform({
 				objectMode: true,
 				transform(entry, e, callback) {
+					console.log(1);
 					entry.pipe(fs.createWriteStream(executablePath))
-						.on('finish', callback);
+						.on('close', () => { console.log(2); callback() });
 				}
 			})
 		);
 
 		fs.chmodSync(executablePath, '700');
+
+		console.log(`[+] Terraform ${version} installed successfully`);
 	}
-})();
+
+	return true;
+};
+
+module.exports = { cacheDir, version, executablePath, isReady: doInstall() };

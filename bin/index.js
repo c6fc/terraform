@@ -6,6 +6,8 @@ const { spawn } = require('child_process');
 (async () => {
   const args = process.argv.slice(2);
 
+  await terraform.isReady;
+
   const proc = spawn(terraform.executablePath, args, {
     stdio: [process.stdin, process.stdout, process.stderr]
   });
