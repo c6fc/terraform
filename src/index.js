@@ -9,10 +9,10 @@ const crypto = require('crypto');
 const stream = require('stream');
 const findCacheDir = require('find-cache-dir');
 
-const myself = require('../package.json')
+const myself = require('../package.json');
 
+const version = myself?.config?.tf_version || "1.2.5";
 const cacheDir = findCacheDir({ name: myself.name, cwd: process.env.INIT_CWD });
-const version = myself.version;
 const executablePath = path.join(cacheDir, `terraform-${version}`);
 
 module.exports = { cacheDir, version, executablePath };
@@ -28,7 +28,7 @@ const platMap = {
 	linux: "linux"
 };
 
-(async (version) => {	
+(async () => {	
 	const arch = archMap?.[process.arch];
 	const plat = platMap?.[process.platform];
 
@@ -47,6 +47,7 @@ const platMap = {
 		fs.mkdirSync(cacheDir, { recursive: true });
 
 		const downloadUrl = `https://releases.hashicorp.com/terraform/${version}/terraform_${version}_linux_${arch}.zip`;
+
 		const pipeline = util.promisify(stream.pipeline);
 		const download = await axios(downloadUrl, {
 			responseType: 'stream'
@@ -66,6 +67,4 @@ const platMap = {
 
 		fs.chmodSync(executablePath, '700');
 	}
-
-	return true;
 })();

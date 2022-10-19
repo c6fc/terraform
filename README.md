@@ -5,13 +5,21 @@ Link and use the Terraform binary with NPM.
 ## Usage
 
 ```sh
-npm install -p @c6fc/terraform@0.15.4 # Installs Terraform 0.15.4
+npm install -p @c6fc/terraform
+```
+
+Set the `tf_version` config element in your `package.json`:
+
+```json
+"config": {
+	"tf_version": "0.15.4"
+}
 ```
 
 ```javascript
-const terraform = require('@c6fc/terraform'); // Install and link Terraform
+const terraform = require('@c6fc/terraform'); // Install and link Terraform 0.15.4
 
-console.log(terraform);
+console.log(terraform); 
 
 /* {
 	cacheDir: <path to terraform cache>
