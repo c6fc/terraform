@@ -9,10 +9,10 @@ const crypto = require('crypto');
 const stream = require('stream');
 const findCacheDir = require('find-cache-dir');
 
-const myself = require('../package.json');
+const myself = require(path.join(process.env.INIT_CWD, 'package.json'));
 
 const version = myself?.config?.tf_version || "1.2.5";
-const cacheDir = findCacheDir({ name: myself.name, cwd: process.env.INIT_CWD });
+const cacheDir = findCacheDir({ name: '@c6fc/terraform', cwd: process.env.INIT_CWD });
 const executablePath = path.join(cacheDir, `terraform-${version}`);
 
 const archMap = {
@@ -40,31 +40,51 @@ const doInstall = async function() {
 		process.exit(-1);
 	}
 
+	console.log(`[*] Using Terraform ${version}`);
+
 	if (!fs.existsSync(executablePath)) {
 
-		console.log(`[*] Collecting Terraform ${version}`);
+		console.log(`[*] Terraform binary isn't present. Downloading...`);
 
 		fs.mkdirSync(cacheDir, { recursive: true });
 
-		const downloadUrl = `https://releases.hashicorp.com/terraform/${version}/terraform_${version}_linux_${arch}.zip`;
+		const downloadUrl = `https://releases.hashicorp.com/terraform/${version}/terraform_${version}_${plat}_${arch}.zip`;
 
 		const pipeline = util.promisify(stream.pipeline);
 		const download = await axios(downloadUrl, {
 			responseType: 'stream'
 		});
 
+		const hashstream = calculateStreamHash();
+
 		await pipeline(
 			download.data,
+			hashstream,
 			unzip.Parse(),
 			stream.Transform({
 				objectMode: true,
 				transform(entry, e, callback) {
-					console.log(1);
 					entry.pipe(fs.createWriteStream(executablePath))
-						.on('close', () => { console.log(2); callback() });
+						.on('close', () => { callback(); });
 				}
 			})
 		);
+
+		const binaryHash = hashstream.hashValue;
+
+		const hashes = await axios(`https://releases.hashicorp.com/terraform/${version}/terraform_${version}_SHA256SUMS`);
+
+		const versionHash = hashes.data.split("\n").reduce((a, c) => {
+			const [hash, version] = c.split('  ');
+			return Object.assign(a, { [version]: hash });
+		})[`terraform_${version}_${plat}_${arch}.zip`];
+
+		if (versionHash !== binaryHash) {
+			console.log(`[!] Failed to install Terraform ${version}. Binary hash of ${binaryHash} doesn't match expected hash ${versionHash}`);
+			console.log(executablePath);
+			fs.unlinkSync(executablePath);
+			process.exit(1);
+		}
 
 		fs.chmodSync(executablePath, '700');
 
@@ -73,5 +93,20 @@ const doInstall = async function() {
 
 	return true;
 };
+
+function calculateStreamHash() {
+  const hash = crypto.createHash('sha256');
+  return new stream.Transform({
+    transform(chunk, encoding, callback) {
+      hash.update(chunk);
+      this.push(chunk); // Pass the chunk down the pipeline
+      callback();
+    },
+    flush(callback) {
+      this.hashValue = hash.digest('hex');
+      callback();
+    },
+  });
+}
 
 module.exports = { cacheDir, version, executablePath, isReady: doInstall() };

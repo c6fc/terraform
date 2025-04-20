@@ -8,6 +8,8 @@ const { spawn } = require('child_process');
 
   await terraform.isReady;
 
+  console.log(`[*] Using Terraform at ${terraform.executablePath}`);
+
   const proc = spawn(terraform.executablePath, args, {
     stdio: [process.stdin, process.stdout, process.stderr]
   });
