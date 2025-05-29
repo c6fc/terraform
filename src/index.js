@@ -13,6 +13,7 @@ const myself = require(path.join(process.env.INIT_CWD, 'package.json'));
 
 const version = myself?.config?.tf_version || "1.2.5";
 const cacheDir = findCacheDir({ name: '@c6fc/terraform', cwd: process.env.INIT_CWD });
+const downloadPath = path.join(cacheDir, `terraform-download-part`);
 const executablePath = path.join(cacheDir, `terraform-${version}`);
 
 const archMap = {
@@ -64,7 +65,7 @@ const doInstall = async function() {
 			stream.Transform({
 				objectMode: true,
 				transform(entry, e, callback) {
-					entry.pipe(fs.createWriteStream(executablePath))
+					entry.pipe(fs.createWriteStream(downloadPath))
 						.on('close', () => { callback(); });
 				}
 			})
@@ -81,14 +82,15 @@ const doInstall = async function() {
 
 		if (versionHash !== binaryHash) {
 			console.log(`[!] Failed to install Terraform ${version}. Binary hash of ${binaryHash} doesn't match expected hash ${versionHash}`);
-			console.log(executablePath);
-			fs.unlinkSync(executablePath);
+			console.log(downloadPath);
+			fs.unlinkSync(downloadPath);
 			process.exit(1);
 		}
 
+		fs.renameSync(downloadPath, executablePath);
 		fs.chmodSync(executablePath, '700');
 
-		console.log(`[+] Terraform ${version} installed successfully`);
+		console.log(`[+] Hashes verified. Terraform ${version} installed successfully`);
 	}
 
 	return true;
