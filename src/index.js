@@ -96,6 +96,21 @@ const doInstall = async function() {
 	return true;
 };
 
+const exec = async function(...args) {
+
+	await isReady;
+
+	let result = spawnSync(executablePath, args, {
+		cwd: this.renderPath,
+		stdio: [process.stdin, process.stdout, process.stderr]
+	});
+
+	if (result.status != 0) {
+		console.log(`[!] Terraform '${args[0]}' failed with status code ${result.status}`);
+		process.exit(result.status);
+	}
+}
+
 function calculateStreamHash() {
   const hash = crypto.createHash('sha256');
   return new stream.Transform({
@@ -111,4 +126,6 @@ function calculateStreamHash() {
   });
 }
 
-module.exports = { cacheDir, version, executablePath, isReady: doInstall() };
+const isReady = doInstall();
+
+module.exports = { cacheDir, version, exec, executablePath, isReady };
