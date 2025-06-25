@@ -1,6 +1,6 @@
 {
   "name": "@c6fc/terraform",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Download/Use Terraform via Node",
   "main": "src/index.js",
   "bin": {

@@ -7,6 +7,7 @@ const unzip = require('unzip-stream');
 const axios = require('axios');
 const crypto = require('crypto');
 const stream = require('stream');
+const { spawnSync } = require('child_process');
 const findCacheDir = require('find-cache-dir');
 
 const myself = require(path.join(process.env.INIT_CWD, 'package.json'));
