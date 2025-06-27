@@ -108,14 +108,11 @@ const doInstall = async function() {
 	return true;
 };
 
-const exec = async function(...args) {
+const exec = async function(args, options) {
 
 	await isReady;
 
-	let result = spawnSync(executablePath, args, {
-		cwd: this.renderPath,
-		stdio: [process.stdin, process.stdout, process.stderr]
-	});
+	let result = spawnSync(executablePath, args, options);
 
 	if (result.status != 0) {
 		console.log(`[!] Terraform '${args[0]}' failed with status code ${result.status}`);
