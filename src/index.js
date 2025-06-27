@@ -10,7 +10,18 @@ const stream = require('stream');
 const { spawnSync } = require('child_process');
 const findCacheDir = require('find-cache-dir');
 
-const myself = require(path.join(process.env.INIT_CWD, 'package.json'));
+// Find the package.json for the invoking module CWD
+let referencePath = '.';
+const depth = 0, maxDepth = 2;
+while (!fs.existsSync(path.join(path.resolve(referencePath, 'package.json'))) && depth < maxDepth) {
+	referencePath = path.join(referencePath, '..');
+}
+
+if (!fs.existsSync(path.join(path.resolve(referencePath, 'package.json')))) {
+	throw new Error(`[!] Unable to locate package.json in current directory tree.`);
+}
+
+const myself = require(path.join(path.resolve(referencePath, 'package.json')));
 
 const version = myself?.config?.tf_version || "1.2.5";
 const cacheDir = findCacheDir({ name: '@c6fc/terraform', cwd: process.env.INIT_CWD });
